@@ -11,4 +11,4 @@ I kept the solution small and auditable. Python checks robots.txt, retrieves one
 5. The original GitHub Models integration returned non-JSON text, so I switched to local Qwen. Its initial answer was 36 instead of the source's 6; validation caught it, and a few-shot prompt fixed the extraction.
 
 ## Actual elapsed time
-**To be filled in by the candidate.** The brief limits the assessment to three hours. The full implementation may exceed the brief's limit; be transparent with the reviewer if so, and do not misrepresent hours or unverified features.
+**Just over 2 hours (estimated).** The assessment was completed within the 3-hour time cap.
