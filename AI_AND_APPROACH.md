@@ -1,14 +1,14 @@
-# Approach and AI usage notes
+# Approach and AI usage — developer assessment
 
-## Brief approach
-I kept the take-home intentionally small: Python retrieves the listing once, after checking robots.txt. BeautifulSoup identifies three complete bonus cards. A language model turns those cards into structured values, including the wagering multiplier and its calculation basis. Each extracted value is checked against the actual source text before the JSON is atomically replaced. A dependency-free JavaScript page reads the JSON and adapts the table to mobile screens. Tests cover source changes, access blocks and incorrect AI results. This is a practical demonstration, not a gambling recommendation.
+## Short approach
+I kept the solution small and auditable. Python checks robots.txt, retrieves one public comparison table and extracts three casino entries without typing bonus values into the program. I send the captured free-text terms to a language model, then check every returned field against the source text before atomically saving the JSON. The responsive HTML/CSS/JavaScript page reads that JSON and provides simple search and sorting. Offline tests cover both valid extraction and failure cases.
 
-## AI notes (five lines)
-1. Tool used: **ChatGPT** to help plan and implement the Python and frontend code; the running scraper uses **GPT-4o-mini** via OpenAI or GitHub Models.
-2. ChatGPT initially identified a public comparison page before verifying that automated scraping was permitted.
-3. I caught the gap when robots.txt could not be inspected from this restricted development environment.
-4. I corrected the approach by making the scraper check robots.txt itself and stop safely if it is disallowed or cannot be verified.
-5. I also added validation to prevent the language model treating `10xb` and `7x(d+b)` as equivalent wagering conditions.
+## AI usage (five lines)
+1. I used **ChatGPT** to assist with planning, code, frontend layout and unit tests; the running scraper uses a model through OpenAI or GitHub Models.
+2. My original source, AskGamblers, redirected to a region-restricted page and was not reliable for the automation.
+3. I caught this by checking the public URL and reviewing GitHub Actions instead of assuming it worked.
+4. I switched to a publicly accessible comparison table, kept a strict robots.txt check and added source-grounded validation.
+5. GitHub Models initially returned non-parseable text; I added a JSON-only response requirement and tested the error path. Only claim the fix is fully working after a successful live run.
 
-## Time spent
-**Fill this in with your real elapsed work time before submitting.** The employer caps the assessment at 3 hours. Do not claim the unavailable live integration or deployment is complete until it has been tested.
+## Actual elapsed time
+**To be filled in by the candidate.** The brief limits the assessment to three hours. The full implementation may exceed the brief's limit; be transparent with the reviewer if so, and do not misrepresent hours or unverified features.
