@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  models: read
 
 concurrency:
   group: website-${{ github.ref }}
@@ -32,6 +31,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Test parser and safety behavior
         run: python -m unittest discover -s tests -v
+      - name: Validate browser JavaScript syntax
+        run: node --check assets/app.js
       - name: Scrape live terms and structure with a local language model
         if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[scrape]')
         run: python -m scraper.scrape
