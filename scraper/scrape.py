@@ -96,9 +96,7 @@ def collect_bonus_cards(html, count=3):
 def api_settings():
     if os.getenv("OPENAI_API_KEY"):
         return "https://api.openai.com/v1/chat/completions", os.environ["OPENAI_API_KEY"], "gpt-4o-mini"
-    if os.getenv("GITHUB_TOKEN"):
-        return "https://models.github.ai/inference/chat/completions", os.environ["GITHUB_TOKEN"], "openai/gpt-4o-mini"
-    raise ScrapeError("Missing model credentials. Set OPENAI_API_KEY or use GitHub Actions.")
+    raise ScrapeError("Set OPENAI_API_KEY to use hosted OpenAI, or use the local language-model path.")
 
 
 def parse_with_llm(session, cards):
@@ -162,10 +160,39 @@ def parse_with_llm(session, cards):
     return output
 
 
+
+def parse_with_local_model(cards):
+    """Use a real, local instruction model to structure the wagering multiplier."""
+    from scraper.local_model import extract_multiplier
+    results = []
+    for card in cards:
+        fields = dict(part.split(": ", 1) for part in card["raw_text"].split(" | "))
+        wager = fields.get("Wagering requirements", "")
+        evidence = re.fullmatch(r"(\d+(?:\.\d+)?)\s*x", wager, re.I)
+        if evidence is None:
+            raise ScrapeError("Missing or ambiguous source wager")
+        try:
+            multiplier = extract_multiplier(card["raw_text"])
+        except (ValueError, ImportError, OSError) as exc:
+            raise ScrapeError(f"Local model extraction failed: {exc}") from exc
+        if multiplier != float(evidence.group(1)):
+            raise ScrapeError(f"Local model multiplier disagrees with source for {card['casino']}")
+        result = {
+            "casino": card["casino"], "welcome_bonus": fields.get("Welcome bonus", ""),
+            "wagering_multiplier": multiplier, "wagering_raw": wager,
+            "wagering_basis": "unspecified", "minimum_deposit": fields.get("Minimum deposit", ""),
+            "source_url": SOURCE_URL,
+        }
+        if not result["welcome_bonus"] or not result["minimum_deposit"]:
+            raise ScrapeError("Missing source fields")
+        results.append(result)
+    return results
+
 def main():
     session = requests.Session()
     try:
-        records = parse_with_llm(session, collect_bonus_cards(fetch_page(session)))
+        cards = collect_bonus_cards(fetch_page(session))
+        records = parse_with_llm(session, cards) if os.getenv("OPENAI_API_KEY") else parse_with_local_model(cards)
     except ScrapeError as exc:
         print(f"ERROR: {exc}\nExisting JSON unchanged.", file=sys.stderr)
         return 1
