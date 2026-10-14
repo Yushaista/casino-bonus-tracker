@@ -117,12 +117,14 @@ def parse_with_llm(session, cards):
     try:
         res = session.post(endpoint, timeout=45,
                            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-                           json={"model": model, "temperature": 0, "messages": [
+                           json={"model": model, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [
                                {"role": "system", "content": instructions},
                                {"role": "user", "content": json.dumps(cards, ensure_ascii=False)}]})
         res.raise_for_status()
         content = res.json()["choices"][0]["message"]["content"].strip()
-        content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content)
+        if os.getenv("SCRAPER_DEBUG") == "1":
+            print("AI response preview:", repr(content[:420]))
+        content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content, flags=re.I)
         result = json.loads(content)["records"]
     except (requests.RequestException, KeyError, TypeError, ValueError, IndexError) as exc:
         raise ScrapeError(f"LLM request or JSON parsing failed: {exc}") from exc
