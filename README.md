@@ -10,7 +10,7 @@ A focused end-to-end developer screening project: **one command**, one public da
 
 - Scraper retrieves the public BetProof comparison table for PlayaBets, Springbok Casino, and Thunderbolt Casino.
 - Extracts **welcome bonus**, **wagering multiplier**, **minimum deposit**, and **source URL**, retaining the source wording and wager basis where known.
-- Uses a small **local instruction-following language model** (FLAN-T5) to extract the wagering multiplier from the captured free-text offer; it validates the model's answer against the source. Other displayed fields are parsed directly from the source.
+- Uses a small **local instruction-following language model** (Qwen2.5-0.5B-Instruct) to extract the wagering multiplier from the captured free-text offer; it validates the model's answer against the source. Other displayed fields are parsed directly from the source.
 - Checks `robots.txt` first. Does not follow blocked redirects or bypass CAPTCHAs/logins. If the source is disallowed or unavailable, **fails without modifying the last valid JSON**.
 - Writes `data/bonuses.json` atomically only after all three offers validate.
 - Static website reads **the JSON**, not hardcoded values. Responsive table/cards, search, sort, reload button, loading/empty/error states, timestamps, and accessible source links.
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 python -m scraper.scrape
 ```
 
-**Single scrape command:** `python -m scraper.scrape`. By default the script downloads and runs the open-weight `google/flan-t5-small` language model on your machine or CI runner (no API key required). The first run needs internet access to fetch weights. Setting `OPENAI_API_KEY` optionally chooses hosted OpenAI instead. Never commit API keys. Expect output `Saved 3...` on success.
+**Single scrape command:** `python -m scraper.scrape`. By default the script downloads and runs the open-weight `Qwen/Qwen2.5-0.5B-Instruct` language model on your machine or CI runner (no API key required). The first run needs internet access to fetch weights. Setting `OPENAI_API_KEY` optionally chooses hosted OpenAI instead. Never commit API keys. Expect output `Saved 3...` on success.
 
 ## Run website locally
 
