@@ -1,0 +1,35 @@
+{
+  "source_name": "AskGamblers — South Africa welcome bonuses",
+  "source_url": "https://www.askgamblers.com/casino-bonuses/countries/za/welcome",
+  "generated_at": null,
+  "status": "indexed_preview",
+  "casinos": [
+    {
+      "casino": "Jackpot City Casino",
+      "welcome_bonus": "100% up to 4000 ZAR",
+      "wagering_multiplier": 10,
+      "wagering_raw": "10xb",
+      "wagering_basis": "bonus",
+      "minimum_deposit": "50 ZAR",
+      "source_url": "https://www.askgamblers.com/casino-bonuses/countries/za/welcome"
+    },
+    {
+      "casino": "YesPlay Casino",
+      "welcome_bonus": "100% up to 3000 ZAR",
+      "wagering_multiplier": 7,
+      "wagering_raw": "7x(d+b)",
+      "wagering_basis": "deposit_plus_bonus",
+      "minimum_deposit": "20 ZAR",
+      "source_url": "https://www.askgamblers.com/casino-bonuses/countries/za/welcome"
+    },
+    {
+      "casino": "BetBay Casino",
+      "welcome_bonus": "350% up to €2000 + 1000 Free Spins, Welcome Package at BetBay Casino",
+      "wagering_multiplier": 30,
+      "wagering_raw": "30x(d+b)",
+      "wagering_basis": "deposit_plus_bonus",
+      "minimum_deposit": "€25",
+      "source_url": "https://www.askgamblers.com/casino-bonuses/countries/za/welcome"
+    }
+  ]
+}
