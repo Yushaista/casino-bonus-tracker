@@ -1,32 +1,40 @@
-# BonusScope — casino bonus scraper and responsive comparison
+# BonusScope — casino bonus scraper + responsive comparison
 
-A focused web-developer screening task. One Python command downloads public listing data for **three casinos**, asks an LLM to structure the bonus terms, validates the response and writes `data/bonuses.json`. A single static webpage displays the JSON without hardcoding bonus data into HTML or JavaScript.
+A focused end-to-end developer screening project: **one command**, one public data source, **three casinos**, AI-assisted extraction, a validated JSON file, and one deployed mobile-friendly page.
 
-**Chosen source:** [AskGamblers — South Africa Welcome Bonuses](https://www.askgamblers.com/casino-bonuses/countries/za/welcome). The script first checks `robots.txt`. If scraping is disallowed, redirected, unavailable or blocked, it exits without bypassing the restriction or rewriting old data. A change of source would require reviewing the extraction assumptions and tests.
+**Live page:** https://casino-bonus-tracker.vercel.app/  
+**Repository:** https://github.com/Yushaista/casino-bonus-tracker  
+**Source:** https://betproof.co.za/casino-bonuses-south-africa/
 
-## Install / run the scraper
+## What it demonstrates
 
-Requirements: Python 3.10+ and an internet connection. On macOS/Linux:
+- Scraper retrieves the public BetProof comparison table for PlayaBets, Springbok Casino, and Thunderbolt Casino.
+- Extracts **welcome bonus**, **wagering multiplier**, **minimum deposit**, and **source URL**, retaining the source wording and wager basis where known.
+- Sends each captured free-text offer to a language model to structure the fields; then rejects any AI-generated field not supported by the source.
+- Checks `robots.txt` first. Does not follow blocked redirects or bypass CAPTCHAs/logins. If the source is disallowed or unavailable, **fails without modifying the last valid JSON**.
+- Writes `data/bonuses.json` atomically only after all three offers validate.
+- Static website reads **the JSON**, not hardcoded values. Responsive table/cards, search, sort, reload button, loading/empty/error states, timestamps, and accessible source links.
+- GitHub Actions tests every push and attempts a fresh scrape automatically and daily at **05:18 UTC**; a successful result is committed, triggering Vercel redeployment.
+
+## Install / run (Python 3.10+)
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate   # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-export OPENAI_API_KEY='your-api-key-here'
+export OPENAI_API_KEY="your-key"  # Windows PowerShell: $env:OPENAI_API_KEY="your-key"
 python -m scraper.scrape
 ```
 
-On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` and set the key using `$env:OPENAI_API_KEY='your-api-key-here'`. The **single scraping command** is `python -m scraper.scrape` after installation and configuration. The key is only used locally and must not be committed. Alternatively run the workflow in GitHub Actions, which uses its built-in `GITHUB_TOKEN` with `models: read` permission to call GitHub Models (subject to account availability and API limits).
+**Single scrape command:** `python -m scraper.scrape`. The script uses a local `OPENAI_API_KEY`, or `GITHUB_TOKEN` when run in GitHub Actions with `models: read` permission. No API keys are stored in the repository. Both network access and model access are required. Expect output `Saved 3...` on success.
 
-When successful, the script prints `Saved 3 source-validated casinos...` and replaces `data/bonuses.json`. If unsuccessful, it prints the reason and leaves the old file unchanged. It makes only **one source-page request**, plus the robots check, and **one LLM request** for all three cards.
-
-## Run the website
+## Run website locally
 
 ```bash
 python -m http.server 8000
 ```
 
-Open **http://localhost:8000**. Opening `index.html` directly via `file://` may prevent browser `fetch()` from reading the JSON. The page uses no frontend framework or build step.
+Open http://localhost:8000 (rather than `file://`, which may block JSON fetching).
 
 ## Run tests
 
@@ -34,28 +42,27 @@ Open **http://localhost:8000**. Opening `index.html` directly via `file://` may 
 python -m unittest discover -s tests -v
 ```
 
-The tests run offline using a small HTML fixture and a mocked LLM response. They check complete-record selection, robots access restrictions, HTTP blocking and hallucinated wagering multipliers.
+Eight mocked tests verify source table extraction, unknown/ambiguous data rejection, robots access restrictions, redirects, and LLM hallucination/record count validation. These tests **do not replace** a successful live integration run.
 
-## Publish with GitHub Pages
+## Data integrity / runtime status
 
-1. Create a new GitHub repository, commit these files, and push to its `main` branch. Do **not** commit `.env` or any API key.
-2. In **Settings → Pages**, choose **GitHub Actions** as the build/deployment source.
-3. In **Actions → Test, refresh and deploy**, select **Run workflow** for a live scraping attempt. GitHub Models access must be available to your account; the workflow includes `models: read`.
-4. Once the workflow succeeds, check `data/bonuses.json` has `"status": "live_scrape"`, exactly 3 casinos, and an actual `generated_at` timestamp. Review the Pages URL and test on a phone.
-5. The workflow is also scheduled daily at 05:18 UTC. The script refuses disallowed or blocked access; if it fails, the workflow reports a failure without replacing the previous JSON.
+Look at `data/bonuses.json`:
+- `status: "live_scrape"` + valid `generated_at` + **3 records** = output from a successful source and model run.
+- `status: "pending_scrape"` = no validated live snapshot yet; the site deliberately displays **no invented records**.
+- On any scrape/LLM/validation error the script exits nonzero and **preserves the last valid file**.
 
-> **Submission caveat:** The included `data/bonuses.json` is an **indexed-source preview** that was transcribed into structured data by ChatGPT from a publicly indexed page, *not* the output of a completed live scraper run. This preview exists for visual frontend review. **Do not submit it as proof that the scraper ran.** Replace it by running the actual command successfully before submission, or explicitly report the live integration as unfinished. If the source blocks the robot or changes structure, switch to a legitimately scrapable source and revise the parsing/tests rather than circumventing restrictions.
+The source's `6x` and `30x` figures do **not** necessarily specify whether the wager applies to bonus, deposit, or both. This is kept as `wagering_basis: "unspecified"` rather than inferred. Source terms can change and may include additional restrictions. This is a technical assessment, not a casino recommendation. 18+.
 
-## Structure
+## Files
 
-- `scraper/scrape.py` — polite fetch, HTML listing extraction, LLM transformation, validation and atomic JSON write
-- `data/bonuses.json` — the 3-record input for the public page (preview until refreshed)
-- `index.html`, `assets/styles.css`, `assets/app.js` — responsive frontend; renders directly from JSON
-- `tests/` — automated tests and test-only sample HTML
-- `.github/workflows/website.yml` — scheduled refresh, test and GitHub Pages deployment
-- `PRODUCTION_PLAN.md` — half-page scaling/ops/cost proposal
-- `AI_AND_APPROACH.md` — approach, AI notes, and honest timing field
+- `scraper/scrape.py`: robots-checking fetch, table extraction, AI parsing, source validation, atomic JSON write.
+- `data/bonuses.json`: actual website data, initially empty until a successful scrape.
+- `index.html`, `assets/`: static, dependency-free responsive frontend and working controls.
+- `tests/`: offline unit tests and an illustrative HTML table fixture.
+- `.github/workflows/website.yml`: tests, daily/source refresh and Git commit.
+- `PRODUCTION_PLAN.md`: scaling proposal for 200 casinos (hosting, DB, backups, DNS/HTTPS, schedule, monitoring, costs).
+- `AI_AND_APPROACH.md`: personal approach, five lines about AI, and time-tracking field.
 
-## Data integrity
+## Deployment
 
-The LLM extracts bonus copy, wagering multipliers and minimum deposit from captured source text, but a deterministic validation layer rejects invented values and inconsistent multipliers. `10xb` means wagering on bonus funds, while `7x(d+b)` means deposit plus bonus. This distinction is retained alongside the numeric multiplier. Casino bonus terms change; this is an informational technical exercise and not an endorsement. Always check the linked original terms. 18+.
+The Vercel project is connected to the repository's `main` branch. Pushes trigger deployments. GitHub Actions runs on pushes and daily, and may fail if a website blocks automated access or GitHub Models returns invalid output. Check the latest workflow **and the current JSON status** before claiming the full integration is live.
