@@ -21,13 +21,19 @@ def extract_multiplier(raw_text):
     wagering_terms = match.group(1)
     tokenizer, model = load_model()
     messages = [
-        {"role": "system", "content": "Extract the wagering multiplier. Reply with ONLY the number, not words."},
-        {"role": "user", "content": f"Wagering requirement: {wagering_terms}"},
+        {"role": "system", "content": "Copy ONLY the exact numeric multiplier that appears immediately before x in a wagering condition. Never invent a value."},
+        {"role": "user", "content": "Wagering: 5x"},
+        {"role": "assistant", "content": "5"},
+        {"role": "user", "content": "Wagering: 12x"},
+        {"role": "assistant", "content": "12"},
+        {"role": "user", "content": "Wagering: 40x"},
+        {"role": "assistant", "content": "40"},
+        {"role": "user", "content": f"Wagering: {wagering_terms}"},
     ]
     prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     encoded = tokenizer(prompt, return_tensors="pt")
     with torch.no_grad():
-        output = model.generate(**encoded, max_new_tokens=12, do_sample=False, pad_token_id=tokenizer.eos_token_id)
+        output = model.generate(**encoded, max_new_tokens=8, do_sample=False, pad_token_id=tokenizer.eos_token_id)
     answer = tokenizer.decode(output[0][encoded.input_ids.shape[1]:], skip_special_tokens=True).strip()
     found = re.fullmatch(r"(\d+(?:\.\d+)?)\s*x?", answer, re.I)
     if not found:
