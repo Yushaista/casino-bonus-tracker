@@ -15,7 +15,7 @@ from urllib.robotparser import RobotFileParser
 import requests
 from bs4 import BeautifulSoup
 
-SOURCE_URL = "https://www.askgamblers.com/casino-bonuses/countries/za/welcome"
+SOURCE_URL = "https://betproof.co.za/casino-bonuses-south-africa/"
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "bonuses.json"
 USER_AGENT = "BonusAssessmentBot/1.0 (+public portfolio assessment)"
 TIMEOUT = 20
@@ -31,7 +31,7 @@ def fetch_page(session, url=SOURCE_URL):
         raise ScrapeError("Only HTTPS public pages are allowed")
     robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
     try:
-        robots = session.get(robots_url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT})
+        robots = session.get(robots_url, timeout=TIMEOUT, allow_redirects=False, headers={"User-Agent": USER_AGENT})
     except requests.RequestException as exc:
         raise ScrapeError(f"Unable to verify robots.txt: {exc}") from exc
     if robots.status_code not in (200, 404):
@@ -55,32 +55,42 @@ def fetch_page(session, url=SOURCE_URL):
     return response.text
 
 
+TARGET_CASINOS = ("PlayaBets", "Springbok Casino", "Thunderbolt Casino")
+
+
 def collect_bonus_cards(html, count=3):
-    """Automatically collect casino card text, skipping missing wagering data."""
+    """Extract three unambiguous offers from the public comparison table."""
     soup = BeautifulSoup(html, "html.parser")
-    for tag in soup(["script", "style", "noscript", "template"]):
-        tag.decompose()
-    tokens = [" ".join(text.split()) for text in soup.stripped_strings]
-    cards, seen = [], set()
-    for i, token in enumerate(tokens):
-        if not re.fullmatch(r"[\w\s&.'’\-]{2,70} Casino", token, re.IGNORECASE):
+    table = None
+    for candidate in soup.find_all("table"):
+        heading = candidate.find("tr")
+        if heading is None:
             continue
-        if token.lower() in seen:
-            continue
-        tail = tokens[i+1:i+36]
-        stop = next((j for j, v in enumerate(tail) if v.lower() == "more info"), len(tail))
-        raw = " | ".join(tail[:stop])
-        if not re.search("minimum deposit", raw, re.I):
-            continue
-        if not re.search(r"wagering requirements?\s*\|?\s*\d+(?:\.\d+)?\s*x", raw, re.I):
-            continue
-        cards.append({"casino": token, "raw_text": raw})
-        seen.add(token.lower())
-        if len(cards) == count:
+        headers = [" ".join(c.get_text(" ", strip=True).lower().split()) for c in heading.find_all(["th", "td"])]
+        if {"casino", "bonus", "wagering"}.issubset(headers) and any("min deposit" in h for h in headers):
+            table = candidate
             break
-    if len(cards) != count:
-        raise ScrapeError(f"Only {len(cards)} complete cards found; expected {count}. Source may have changed.")
-    return cards
+    if table is None:
+        raise ScrapeError("Casino bonus comparison table missing; the source may have changed")
+    cards = {}
+    for tr in table.find_all("tr"):
+        cells = tr.find_all(["th", "td"], recursive=False)
+        if len(cells) < 4:
+            continue
+        anchor = cells[0].find("a")
+        casino = " ".join((anchor.get_text(" ", strip=True) if anchor else cells[0].get_text(" ", strip=True)).split())
+        if casino not in TARGET_CASINOS or casino in cards:
+            continue
+        bonus, wagering, deposit = (" ".join(cell.get_text(" ", strip=True).split()) for cell in cells[1:4])
+        if not bonus or not re.fullmatch(r"\d+(?:\.\d+)?\s*x", wagering, re.I) or not re.fullmatch(r"R\s*\d[\d,.]*", deposit):
+            raise ScrapeError(f"Missing or ambiguous bonus fields for {casino}")
+        cards[casino] = {
+            "casino": casino,
+            "raw_text": f"Casino: {casino} | Welcome bonus: {bonus} | Wagering requirements: {wagering} | Minimum deposit: {deposit}"
+        }
+    if any(name not in cards for name in TARGET_CASINOS) or count != 3:
+        raise ScrapeError(f"Found only {len(cards)} of 3 complete casinos; source may have changed")
+    return [cards[name] for name in TARGET_CASINOS]
 
 
 def api_settings():
@@ -155,7 +165,7 @@ def main():
         print(f"ERROR: {exc}\nExisting JSON unchanged.", file=sys.stderr)
         return 1
     result = {
-        "source_name": "AskGamblers — South Africa welcome bonuses",
+        "source_name": "BetProof — Casino Bonuses South Africa",
         "source_url": SOURCE_URL,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "status": "live_scrape",
