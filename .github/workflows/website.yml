@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: website-${{ github.ref }}
@@ -17,6 +19,8 @@ concurrency:
 jobs:
   test-and-refresh:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -46,3 +50,21 @@ jobs:
             git commit -m 'chore: update source-validated records [scrape]'
             git push
           fi
+
+      - name: Prepare clean static site folder
+        run: |
+          mkdir -p site/assets site/data
+          cp index.html .nojekyll site/
+          cp assets/styles.css assets/app.js site/assets/
+          cp data/bonuses.json site/data/
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload website to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
