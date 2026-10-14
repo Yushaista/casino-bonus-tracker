@@ -121,6 +121,9 @@ def parse_with_llm(session, cards):
                                {"role": "system", "content": instructions},
                                {"role": "user", "content": json.dumps(cards, ensure_ascii=False)}]})
         res.raise_for_status()
+        if os.getenv("SCRAPER_DEBUG") == "1":
+            print("Model transport:", res.status_code, res.headers.get("Content-Type", "?"),
+                  "body length:", len(res.content), "head:", repr(res.text[:160]), flush=True)
         content = res.json()["choices"][0]["message"]["content"].strip()
         if os.getenv("SCRAPER_DEBUG") == "1":
             print("AI response preview:", repr(content[:420]))
