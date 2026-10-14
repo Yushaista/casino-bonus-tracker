@@ -1,4 +1,4 @@
-name: Test, refresh and deploy
+name: Test and refresh casino bonuses
 
 on:
   push:
@@ -10,19 +10,14 @@ on:
 permissions:
   contents: write
   models: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: website-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  test-and-refresh:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -35,27 +30,18 @@ jobs:
         run: pip install -r requirements.txt
       - name: Test parser and safety behavior
         run: python -m unittest discover -s tests -v
-      - name: Refresh data from public page with GitHub Models
-        if: github.event_name != 'push'
+      - name: Scrape live terms and structure with GitHub Models
+        if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[scrape]')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python -m scraper.scrape
-      - name: Commit validated live output
-        if: github.event_name != 'push'
+      - name: Commit validated JSON
+        if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[scrape]')
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/bonuses.json
           if ! git diff --cached --quiet; then
-            git commit -m 'chore: refresh public casino bonus snapshot'
+            git commit -m 'chore: update source-validated records [scrape]'
             git push
           fi
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload static website
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
