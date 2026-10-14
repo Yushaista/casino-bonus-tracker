@@ -112,7 +112,7 @@ def parse_with_llm(session, cards):
                                {"role": "user", "content": json.dumps(cards, ensure_ascii=False)}]})
         res.raise_for_status()
         content = res.json()["choices"][0]["message"]["content"].strip()
-        content = re.sub(r"^``(?:json)?\s*|\s*```$", "", content)
+        content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content)
         result = json.loads(content)["records"]
     except (requests.RequestException, KeyError, TypeError, ValueError, IndexError) as exc:
         raise ScrapeError(f"LLM request or JSON parsing failed: {exc}") from exc
