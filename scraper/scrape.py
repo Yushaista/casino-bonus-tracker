@@ -176,7 +176,7 @@ def parse_with_local_model(cards):
         except (ValueError, ImportError, OSError) as exc:
             raise ScrapeError(f"Local model extraction failed: {exc}") from exc
         if multiplier != float(evidence.group(1)):
-            raise ScrapeError(f"Local model multiplier disagrees with source for {card['casino']}")
+            raise ScrapeError(f"Local model multiplier disagrees with source for {card['casino']}: model={multiplier}, source={evidence.group(1)}")
         result = {
             "casino": card["casino"], "welcome_bonus": fields.get("Welcome bonus", ""),
             "wagering_multiplier": multiplier, "wagering_raw": wager,
