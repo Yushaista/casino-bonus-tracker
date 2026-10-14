@@ -26,15 +26,14 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
+      - name: Install CPU-only PyTorch
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Test parser and safety behavior
         run: python -m unittest discover -s tests -v
-      - name: Scrape live terms and structure with GitHub Models
+      - name: Scrape live terms and structure with a local language model
         if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[scrape]')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCRAPER_DEBUG: "1"
         run: python -m scraper.scrape
       - name: Commit validated JSON
         if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[scrape]')
