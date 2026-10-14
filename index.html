@@ -10,12 +10,12 @@
   <script src="./assets/app.js" defer></script>
 </head>
 <body>
-  <div class="topbar"><div class="shell topbar-inner"><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">B<span>·</span></span> <span>Bonus<span class="brand-light">Scope</span></span></a><span class="topbar-right"><span class="topbar-dot"></span> Technical assessment <span class="topbar-tag">v1.0</span></span></div></div>
+  <div class="topbar"><div class="shell topbar-inner"><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">B<span>·</span></span> <span>Bonus<span class="brand-light">Scope</span></span></a><span class="topbar-right"><span class="topbar-dot"></span> Technical assessment <span class="topbar-tag">v1.1</span></span></div></div>
   <main>
     <header class="hero">
       <div class="shell hero-inner"><div class="eyebrow"><span class="eyebrow-line"></span> DATA COMPARISON / SOUTH AFRICA</div>
         <h1>Every bonus has <em>terms.</em><br>See them clearly.</h1>
-        <p>Three casino welcome offers, extracted from a public listing and presented side by side. No rankings, no hidden numbers.</p>
+        <p>Three casino welcome offers, automatically extracted from one public source and checked before display. No rankings or promotions.</p>
         <div class="hero-chips"><span class="chip">01 &nbsp; Public source</span><span class="chip">02 &nbsp; AI-structured data</span><span class="chip">03 &nbsp; Verifiable terms</span></div>
       </div>
     </header>
@@ -26,10 +26,10 @@
         <div class="stat"><span class="stat-label">MARKET</span><strong>ZA</strong><span class="stat-caption">South Africa listing</span></div>
         <div class="stat"><span class="stat-label">DATA SOURCE</span><strong>01</strong><span class="stat-caption">Public comparison page</span></div>
       </div>
-      <div class="table-card"><div class="table-caption"><div><span class="table-kicker">THE COMPARISON</span><p>Offer details and wagering conditions</p></div><span class="rows-label" id="rows-label">3 records</span></div>
+      <div class="controls" aria-label="Filter and sort offers"><label for="search">Search offers<input id="search" type="search" placeholder="Casino or offer…" autocomplete="off"></label><label for="sort">Sort by<select id="sort"><option value="default">Source order</option><option value="name">Casino name</option><option value="wager_asc">Wagering: low to high</option><option value="wager_desc">Wagering: high to low</option><option value="deposit_asc">Minimum deposit: low to high</option></select></label><button id="reload-data" type="button">↻ Reload data</button></div><div class="table-card"><div class="table-caption"><div><span class="table-kicker">THE COMPARISON</span><p>Offer details and wagering conditions</p></div><span class="rows-label" id="rows-label">0 records</span></div>
         <table><thead><tr><th scope="col">Casino</th><th scope="col">Welcome offer</th><th scope="col">Wagering</th><th scope="col">Minimum deposit</th><th scope="col">Source</th></tr></thead><tbody id="bonus-rows"><tr><td colspan="5" class="empty">Loading bonus records…</td></tr></tbody></table>
       </div>
-      <div class="below"><div class="explainer"><span class="explainer-icon">i</span><div><h3>Reading the wagering requirement</h3><p><strong>10x bonus</strong> means turnover is based on bonus funds; <strong>7x deposit + bonus</strong> means turnover is based on both. These are not equivalent. Always consult the linked terms.</p></div></div><div class="source-note"><p class="overline">DATA PROVENANCE</p><p>Listings are attributed to <a href="https://www.askgamblers.com/casino-bonuses/countries/za/welcome" target="_blank" rel="noopener noreferrer">AskGamblers <span aria-hidden="true">↗</span></a>. The scraper respects robots.txt and does not bypass access restrictions.</p></div></div>
+      <div class="below"><div class="explainer"><span class="explainer-icon">i</span><div><h3>Reading the wagering requirement</h3><p><strong>6x</strong> or <strong>30x</strong> is a multiplier. The source does not always specify whether it applies to the deposit, bonus, or both. Check the original terms before relying on it.</p></div></div><div class="source-note"><p class="overline">DATA PROVENANCE</p><p>Listings are attributed to <a href="https://betproof.co.za/casino-bonuses-south-africa/" target="_blank" rel="noopener noreferrer">BetProof <span aria-hidden="true">↗</span></a>. The scraper respects robots.txt and does not bypass access restrictions.</p></div></div>
     </section>
   </main>
   <footer><div class="shell footer-inner"><span class="footer-brand">BonusScope <span>/ assessment build</span></span><span>For technical demonstration only · 18+ · Verify terms at source</span></div></footer>
